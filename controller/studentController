@@ -1,0 +1,141 @@
+package com.buct.acmer.controller;
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.buct.acmer.entity.Atcoder;
+import com.buct.acmer.entity.ContestInfo;
+import com.buct.acmer.entity.PublicProperty;
+import com.buct.acmer.entity.Student;
+import com.buct.acmer.service.impl.StudentServiceImpl;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import javax.annotation.Resource;
+
+/**
+ * <p>
+ *  前端控制器
+ * </p>
+ *
+ * @author BUCT
+ * @since 2022-06-14
+ */
+@Api(tags = "学生信息")  //Swagger注解，用于生成API文档，指定该控制器属于"学生信息"模块
+@RestController   //Spring注解，将该类声明为一个RESTful风格的控制器，用于处理HTTP请求和响应
+
+@RequestMapping("/acmer/student")   //定义该控制器中处理请求的基础路径
+public class StudentController
+{
+    @Resource  //Spring注解，用于自动注入依赖的StudentServiceImpl对象。
+    private StudentServiceImpl studentService;
+
+    @ApiOperation("查询学生信息")  //Swagger注解，用于描述API接口的操作和功能。
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "currentPage",value = "当前页数",required = true),
+            @ApiImplicitParam(name = "pageSize",value = "页面大小",required = true)
+    })
+    @GetMapping("/all/{currentPage}/{pageSize}")   //处理GET请求，路径为/acmer/student/all/{currentPage}/{pageSize}，用于查询学生信息
+    public PublicProperty<Page<Student>> selectAll(@PathVariable("currentPage") Integer currentPage,
+                                                   @PathVariable("pageSize") Integer pageSize){
+
+        Page<Student> page = new Page<>(currentPage,pageSize);
+        return new PublicProperty(200,"success",studentService.page(page));
+    }
+    @ApiOperation("根据学生stuNo查询学生信息")
+    @GetMapping("/search/{id}")
+    public PublicProperty<Student> searchById(@PathVariable("id") String id) {
+        Student result =studentService.getById(id);
+        if(result != null){
+            return new PublicProperty<>(200,"success",result);
+        } else {
+            return  new PublicProperty<>(400,"user does not exist",null);
+        }
+    }
+    @ApiOperation("根据学生姓名查询学生信息")
+    @GetMapping("/searchByName/{name}")
+    public PublicProperty<Student> searchByName(@PathVariable("name") String name) {
+        Student result = studentService.getByName(name);
+        if (result != null) {
+            return new PublicProperty<>(200, "success", result);
+        } else {
+            return new PublicProperty<>(400, "user does not exist", null);
+        }
+    }
+//        @ApiOperation("根据学生姓名模糊搜索学生信息")
+//        @GetMapping("/searchByName/{name}")
+//        public PublicProperty<List<Student>> searchByName(@PathVariable("name") String name) {
+//            List<Student> result = studentService.getByName(name);
+//            if (!result.isEmpty()) {
+//                return new PublicProperty<>(200, "success", result);
+//            } else {
+//                return new PublicProperty<>(400, "user does not exist", null);
+//            }
+//        }
+
+
+
+    @ApiOperation("新增学生信息")
+    @PostMapping("/insert")  //处理POST请求，路径为/acmer/student/insert，用于新增学生信息。
+    public PublicProperty insert(@RequestBody Student student){
+
+        Student exist = studentService.getById(student.getStuNo());
+        if(exist == null){
+            boolean save = studentService.save(student);
+            if(save){
+                return new PublicProperty(200,"success",null);
+            }else{
+                return new PublicProperty(400,"failed",null);
+            }
+        }else {
+            return new PublicProperty(400,"student exist",null);
+        }
+    }
+
+    @ApiOperation("根据id删除学生信息")   //处理GET请求，路径为/acmer/student/remove/{stuId}，用于根据学生ID删除学生信息
+    @ApiImplicitParam(name = "stuId",value = "学生id",required = true)
+    @GetMapping("/remove/{stuId}")
+    public PublicProperty delete(@PathVariable("stuId") String stuId)
+    {
+
+        boolean flag = studentService.removeById(stuId);
+        if(flag){
+            return new PublicProperty(200,"success",null);
+        }else {
+            return new PublicProperty(400,"failed",null);
+        }
+    }
+
+    @ApiOperation("修改学生竞赛信息")
+    @PostMapping("/update")  //处理POST请求，路径为/acmer/student/update，用于修改学生竞赛信息。
+    public PublicProperty<Student> updateInfo(@RequestBody Student student){
+
+        Student exist = studentService.getById(student.getStuNo());  //获取数据库中与给定学生ID对应的学生信息，并将其赋值给exist变量。
+        if(exist!=null){
+            if(student.getStuName()!="" && student.getStuName() !=null ){
+                exist.setStuName(student.getStuName());
+            }
+            if(student.getStuClass()!="" && student.getStuClass() !=null ){
+                exist.setStuClass(student.getStuClass());
+            }
+            if(student.getStuAcId()!="" && student.getStuAcId() !=null ){
+                exist.setStuAcId(student.getStuAcId());
+            }
+            if(student.getStuCfId()!="" && student.getStuCfId() !=null ){
+                exist.setStuCfId(student.getStuCfId());
+            }
+            boolean update = studentService.updateById(exist);   //调用studentService.updateById(exist)方法更新数据库中的学生信息，并将更新结果赋值给update变量
+            if(update){
+                return new PublicProperty(200,"success",student);  //如果更新成功（update为true），返回一个PublicProperty对象，状态码为200，消息为"success"，数据为更新后的学生对象
+            }else{
+                return new PublicProperty(400,"failed",null);  //如果更新失败，返回一个PublicProperty对象，状态码为400，消息为"failed"。
+            }
+        }else {
+            return new PublicProperty(400,"user does not exist",null);
+        }
+
+    }
+
+}
+//以上代码是一个简单的学生信息管理模块的控制器，通过不同的请求方法和路径实现了查询、新增、删除和修改学生信息的功能
