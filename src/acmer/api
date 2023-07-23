@@ -1,0 +1,40 @@
+    @ApiOperation("根据学生stuNo查询学生信息")
+    @GetMapping("/search/{id}")
+    public PublicProperty<Student> searchById(@PathVariable("id") String id) {
+        Student result =studentService.getById(id);
+        if(result != null){
+            return new PublicProperty<>(200,"success",result);
+        } else {
+            return  new PublicProperty<>(400,"user does not exist",null);
+        }
+    }
+    @ApiOperation("根据学生姓名查询学生信息")
+    @GetMapping("/searchByName/{name}")
+    public PublicProperty<Student> searchByName(@PathVariable("name") String name) {
+        Student result = studentService.getByName(name);
+        if (result != null) {
+            return new PublicProperty<>(200, "success", result);
+        } else {
+            return new PublicProperty<>(400, "user does not exist", null);
+        }
+    }
+    @ApiOperation("根据学生id查询Codeforces信息")
+    @GetMapping("/search/{id}")
+    public PublicProperty<Codeforces> searchById(@PathVariable("id") String id) {
+        Codeforces result = codeforcesService.getById(id);
+        if(result != null) {
+            return new PublicProperty<>(200, "success", result);
+        } else {
+            return new PublicProperty<>(400, "user does not exist", null);
+        }
+    }
+    @ApiOperation("根据学生id查询AtCoder信息")
+    @GetMapping("/search/{id}")
+    public PublicProperty<Atcoder> searchById(@PathVariable("id") String id) {
+        Atcoder result = atcoderService.getById(id);
+        if(result != null) {
+            return new PublicProperty<>(200, "success", result);
+        } else {
+            return new PublicProperty<>(400, "user does not exist", null);
+        }
+    }
